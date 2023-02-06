@@ -8,7 +8,7 @@
 #    - Une prédiction (score + traduction "Accordé/Non-accordé") accompagnée d'un graphique SHAP qui montre les 3 variables qui influencent le + le résultat pour ce client, donc une interprétation facile
 # Grâce au point 2, on filtre les points affichés sur ces graphiques.
 # (dans les deux cas, notre invidivu est clairement représenté sur chaque graphique pour pouvoir le situer visuellement)
-
+# JAJOUTE CETTE LIGNE
 
 import pandas as pd
 import streamlit as st
