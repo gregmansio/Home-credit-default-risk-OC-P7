@@ -8,7 +8,7 @@
 #    - Une prédiction (score + traduction "Accordé/Non-accordé") accompagnée d'un graphique SHAP qui montre les 3 variables qui influencent le + le résultat pour ce client, donc une interprétation facile
 # Grâce au point 2, on filtre les points affichés sur ces graphiques.
 # (dans les deux cas, notre invidivu est clairement représenté sur chaque graphique pour pouvoir le situer visuellement)
-# JAJOUTE CETTE LIGNE
+# J'AJOUTE CETTE LIGNE
 
 import pandas as pd
 import numpy as np
@@ -40,7 +40,7 @@ time.sleep(0)
 # Travail sur les données à sortir visuellement
 
 # Âge - servira à filtrer les infos en dataframe et les deux graphhiques (pareil pour sexe et revenu)
-age = 
+#age = 
 
 def main():
     data_load_state.text('')
@@ -57,7 +57,7 @@ def main():
 
     income_choice = st.sidebar.radio( # AMT_INCOME_TOTAL - 
         label = 'Filtrer selon le revenu :', options = ('Tous', '18-30', '30-40', '40-50', '50-60', '60+'))
-
+    
     # Titre de l'app
     st.title('Home Credit Scoring')
 
@@ -67,6 +67,7 @@ def main():
     def client_aleatoire(): # On va chercher aléatoirement un client dans l'index,
         id_random = np.random.randint(1, len(data.index), 1)
         st.session_state.client = id_random
+    
     st.button("Tirage aléatoire d'un client", on_click=client_aleatoire)    
 
     # Prédiction
@@ -86,7 +87,7 @@ def main():
     st.dataframe(df_client, use_container_width = True)
 
     # Graphique de gauche
-
+    st.bar_chart(client)
     # Graphique de droite
 
     
