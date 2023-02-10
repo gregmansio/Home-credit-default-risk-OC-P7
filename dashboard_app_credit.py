@@ -11,20 +11,19 @@
 # JAJOUTE CETTE LIGNE
 
 import pandas as pd
+import numpy as np
 import streamlit as st
 import requests
+import time
 
-DATA_URL = ('entrer ici l\'url de notre dataset hebergé sur azure')
+DATA_URL = 'https://raw.githubusercontent.com/gregmansio/Home-credit-default-risk-OC-P7/main/app/df_test_sample'
 
-def load_data(n): # nrows = 1000 pour aller chercher 1000 clients au hasard
-    data = pd.read_csv(DATA_URL, nrows = n)  #on va aller chercher notre dataset réduit stocké sur Azure donc?!
-    # autres options de chargement ptet
-    return(data)
 
 data_load_state = st.text('Chargement des données... Veuillez-patienter')
-#data = load_data(1000)
+data = pd.read_csv(DATA_URL)
+time.sleep(0)
 data_load_state.text('Chargement terminé')
-
+time.sleep(0)
 #def request_prediction(model_uri, data):
 #    headers = {"Content-Type": "application/json"}
 #
@@ -38,38 +37,37 @@ data_load_state.text('Chargement terminé')
 #
 #    return response.json()
 
+# Travail sur les données à sortir visuellement
+
+# Âge - servira à filtrer les infos en dataframe et les deux graphhiques (pareil pour sexe et revenu)
+age = 
 
 def main():
+    data_load_state.text('')
     MLFLOW_URI = 'http://127.0.0.1:5000/invocations'
     
     # Sidebar de sélection de filtres (ou d'aucun filtre!)
     sidebar_title = st.sidebar.title('Filtres')
     sidebar_helper = st.sidebar.text('Sélectionner les filtres à appliquer')
     gender_choice = st.sidebar.radio( # CODE_GENDER
-        label = 'Filtrer selon le sexe :', options = ('Femme', 'Homme', 'Tous'))
+        label = 'Filtrer selon le sexe :', options = ('Tous', 'Femme', 'Homme'))
 
     age_choice = st.sidebar.radio( # DAYS_BIRTH - âge en jours au moment de la demande de crédit
-        label = 'Filtrer selon l\'âge :', options = ('18-30', '30-40', '40-50', '50-60', '60+', 'Tous'))
+        label = 'Filtrer selon l\'âge :', options = ('Tous', '18-30', '30-40', '40-50', '50-60', '60+'))
 
     income_choice = st.sidebar.radio( # AMT_INCOME_TOTAL - 
-        label = 'Filtrer selon le revenu :', options = ('18-30', '30-40', '40-50', '50-60', '60+', 'Tous'))
+        label = 'Filtrer selon le revenu :', options = ('Tous', '18-30', '30-40', '40-50', '50-60', '60+'))
 
     # Titre de l'app
     st.title('Home Credit Scoring')
 
     # Sélection du client
-    client = st.selectbox(label = 'Sélectionner un client', options = ("mettre ici l'index de la liste des clients. Ca va etre un gros machin"))
-    client_random = st.button(label = "Tirage aléatoire d'un client")
-    if client_random: # On va chercher aléatoirement un client dans l'index, fonctio
-        id_random = np.randint(1, length(data.index))
-         
-    # Dataframe des informations essentielles du client sélectionné (1 ligne, plusieurs colonnes)     
-    #df = pd.DataFrame()
-    #st.table(df)
-
-    # Graphique de gauche
-
-    # Graphique de droite
+    client = st.selectbox(label = 'Sélectionner un client', options = data.index, key='client')
+    
+    def client_aleatoire(): # On va chercher aléatoirement un client dans l'index,
+        id_random = np.random.randint(1, len(data.index), 1)
+        st.session_state.client = id_random
+    st.button("Tirage aléatoire d'un client", on_click=client_aleatoire)    
 
     # Prédiction
     #X = request_prediction(MLFLOW_URI, data)[0] * 100000 # réponse à l'appel de l'API mlflow
@@ -82,6 +80,17 @@ def main():
     col1.metric(label = "Credit score", value = "X", help = "Le résultat de notre prediction. 0 est le meilleur score.")
     with col2:
         st.metric(label = "Credit accepté?", value = Y_temp)
+         
+    # Informations essentielles du client sélectionné (1 ligne, plusieurs colonnes)     
+    df_client = data.iloc[st.session_state.client]
+    st.dataframe(df_client, use_container_width = True)
+
+    # Graphique de gauche
+
+    # Graphique de droite
+
+    
+    
 
 
 
