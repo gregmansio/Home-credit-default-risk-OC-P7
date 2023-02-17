@@ -23,7 +23,7 @@ import re
 
 st.set_page_config(layout="wide")
 
-DATA_URL = 'https://raw.githubusercontent.com/gregmansio/Home-credit-default-risk-OC-P7/main/app/df_test_sample'
+DATA_URL = 'https://raw.githubusercontent.com/gregmansio/Home-credit-default-risk-OC-P7/main/data/app/df_test_sample'
 MLFLOW_AZURE_URI = 'https://projet-oc-ccxer.francecentral.inference.ml.azure.com/score'
 MLFLOW_AZURE_KEY = '4YZl49LH3JfY8p95KcdQhwrhpbGifykd'
 
