@@ -13,8 +13,10 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import altair as alt
 import requests
 import time
+import ast
 import urllib.request
 import json
 import os
@@ -24,17 +26,13 @@ import re
 st.set_page_config(layout="wide")
 
 DATA_URL = 'https://raw.githubusercontent.com/gregmansio/Home-credit-default-risk-OC-P7/main/data/app/df_test_sample'
-MLFLOW_AZURE_URI = 'https://projet-oc-ccxer.francecentral.inference.ml.azure.com/score'
-MLFLOW_AZURE_KEY = '4YZl49LH3JfY8p95KcdQhwrhpbGifykd'
 
 data_load_state = st.text('Chargement des données... Veuillez-patienter')
 data_csv = pd.read_csv(DATA_URL, index_col=0)
 cols_to_drop = ['TARGET']
 data_no_target = data_csv.drop(cols_to_drop, axis = 1)
-data_no_target.reset_index(drop=True, inplace=True)
-time.sleep(0)
+time.sleep(1)
 data_load_state.text('Chargement terminé')
-time.sleep(0)
 data_csv.loc[:, 'age'] = round(abs(data_csv['DAYS_BIRTH']/365), 1)
 
 
@@ -112,16 +110,17 @@ def main():
     #st.button("Tirage aléatoire d'un client", on_click=client_aleatoire)    
     
      # Filtrage des données clients
-    data_client = data_no_target.iloc[client,]
+    data_client = data_no_target.loc[client]
     data_x = np.asarray(data_client).tolist()
 
     # Prédiction*
     # Fonction proposée de base par Azure ML pour gérer les certificats
     def allowSelfSignedHttps(allowed):
-        # bypass the server certificate verification on client side
+    # bypass the server certificate verification on client side
         if allowed and not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
             ssl._create_default_https_context = ssl._create_unverified_context
-    allowSelfSignedHttps(True) # this line is needed if you use self-signed certificate in your scoring service.
+
+        allowSelfSignedHttps(True) # this line is needed if you use self-signed certificate in your scoring service.
 
     # Definition de la fonction d'appel à l'API et d'obtention de la prédiction
     def predict(donnees, index): 
@@ -667,15 +666,15 @@ def main():
 
         body = str.encode(json.dumps(data))
 
-        url = 'https://projet-oc-ccxer.francecentral.inference.ml.azure.com/score'
+        url = 'https://projet-oc-conbe.francecentral.inference.ml.azure.com/score'
         # Replace this with the primary/secondary key or AMLToken for the endpoint
-        api_key = '4YZl49LH3JfY8p95KcdQhwrhpbGifykd'
+        api_key = 'FqwceCO7HjnNj22lc26MRHj2BLRgqXFI'
         if not api_key:
             raise Exception("A key should be provided to invoke the endpoint")
 
         # The azureml-model-deployment header will force the request to go to a specific deployment.
         # Remove this header to have the request observe the endpoint traffic rules
-        headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key), 'azureml-model-deployment': 'classifier-perso-1' }
+        headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key), 'azureml-model-deployment': 'proba-predict-perso-1' }
 
         req = urllib.request.Request(url, body, headers)
 
@@ -690,16 +689,26 @@ def main():
             # Print the headers - they include the requert ID and the timestamp, which are useful for debugging the failure
             print(error.info())
             print(error.read().decode("utf8", 'ignore'))
-        score_raw = result
-        score_string = score_raw.decode()
-        score_string_modif = re.sub(r'[^\d.]', '', score_string)
-        score = float(score_string_modif)
-
-        if score == 0.0: 
+        score_raw = result.decode()
+        res_str_list = ast.literal_eval(score_raw)
+        score = res_str_list[0][1]
+        if score <= 0.075: # treshold 
             reponse = "Félicitations! Votre demande de crédit a été acceptée"
         else :
             reponse = "Malheureusement, votre demande de crédit ne peux pas aboutir pour le moment."
+        score_display = round(score, 3)
+        seuil = 0.075
 
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(label = 'Votre score', value = score_display)
+
+        with col2:
+            st.metric(label = 'Seuil maximal', value = seuil, help="Vous devez obteni un score inférieur pour que votre demande de crédit soit acceptée")
+            
+
+        
+        
         st.text(reponse)
         st.caption("Le résultat ci-dessus a été duement étudié par nos services. Veuillez trouver ci-dessous des éléments étayants notre réponse.")
 
@@ -708,11 +717,11 @@ def main():
         predict(data_x, client)
           
     # Informations essentielles du client sélectionné (1 ligne, plusieurs colonnes) mais aussi des tous les clients auxquels on souhaite le comparer     
-    df_client = data_csv.iloc[client]
+    df_client = data_csv.loc[client]
 
     # On sélectionne ensuite les quelques colonnes de ce dataset qu'on veut montrer 
     df_client = pd.DataFrame(df_client)
-    cols_to_display = ['cat_sexe', 'age', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'NEW_CREDIT_TO_INCOME_RATIO', 'AMT_ANNUITY', 'BURO_DAYS_CREDIT_MEAN', 'APPROVED_CNT_PAYMENT_MEAN', 'INSTAL_DBD_MAX', 'cat_age', 'cat_revenu']
+    cols_to_display = ['cat_sexe', 'age', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'AMT_ANNUITY', 'NEW_CREDIT_TO_INCOME_RATIO', 'NEW_CREDIT_TO_ANNUITY_RATIO','BURO_DAYS_CREDIT_MEAN', 'INSTAL_DPD_MAX', 'cat_age', 'cat_revenu']
     df_client_filtered = df_client.loc[cols_to_display]
     df_clients_filtered = data_csv[cols_to_display]
 
@@ -745,13 +754,81 @@ def main():
                             
     # Tableaux de données
     df_wide = df_client_filtered.transpose()
+    df_wide['BURO_DAYS_CREDIT_MEAN'] = abs(df_wide['BURO_DAYS_CREDIT_MEAN'])
+    df_wide_display = df_wide
+    df_wide_display = df_wide_display.rename(columns = {
+        "cat_sexe" : "Sexe",
+        "age" : "Age",
+        "AMT_INCOME_TOTAL" : "Revenu annuel",
+        "AMT_CREDIT" : "Montant total du crédit",
+        "NEW_CREDIT_TO_INCOME_RATIO" : "Ratio Crédit / Revenu",
+        "AMT_ANNUITY" : "Annuité",
+        "BURO_DAYS_CREDIT_MEAN" : "Jours depuis dernière demande",
+        "NEW_CREDIT_TO_ANNUITY_RATIO" : "Ratio Crédit / Annuité",
+        'INSTAL_DPD_MAX' : "Nombre max de jours de retard de paiement", 
+        'cat_age' : "Catégorie âge", 
+        'cat_revenu' : "Catégorie de revenu"
+    }) 
 
-    st.dataframe(df_wide, use_container_width = True)
-    st.dataframe(df_clients_filtered, use_container_width = True)
+    df_clients_filtered['BURO_DAYS_CREDIT_MEAN'] = abs(df_clients_filtered['BURO_DAYS_CREDIT_MEAN'])
+    df_clients_display = df_clients_filtered
+    df_clients_display = df_clients_display.rename(columns = {
+        "cat_sexe" : "Sexe",
+        "age" : "Age",
+        "AMT_INCOME_TOTAL" : "Revenu annuel",
+        "AMT_CREDIT" : "Montant total du crédit",
+        "NEW_CREDIT_TO_INCOME_RATIO" : "Ratio Crédit / Revenu",
+        "AMT_ANNUITY" : "Annuité",
+        "BURO_DAYS_CREDIT_MEAN" : "Jours depuis dernière demande",
+        "NEW_CREDIT_TO_ANNUITY_RATIO" : "Ratio Crédit / Annuité",
+        'INSTAL_DPD_MAX' : "Nombre max de jours de retard de paiement", 
+        'cat_age' : "Catégorie âge", 
+        'cat_revenu' : "Catégorie de revenu"
+    })
+    with st.container():
+        st.subheader("Tableaux d'informations importantes")
+        st.caption('Le client sélectionné')
+        st.dataframe(df_wide_display, use_container_width = True)
+        st.caption('Tous les clients')
+        st.dataframe(df_clients_display, use_container_width = True)
 
-    # Graphique de gauche
-    #st.bar_chart(client)
-    # Graphique de droite
+    # Scatterplot credit_annuity ratio
+    st.subheader('Graphique du ratio Crédit sur Annuité et Crédit sur Revenu')
+    st.caption("Sur le graphique de gauche, un client dans le bas du cone rembourse lentement son crédit")
+    sc_plot1 = alt.Chart(df_wide_display).mark_circle().encode(
+        x = 'Montant total du crédit',
+        y = "Annuité",
+        color = alt.value('darkred'),
+        size = alt.value(400)
+    )
+
+    sc_plot2 = alt.Chart(df_clients_display.reset_index()).mark_circle().encode(
+        x = 'Montant total du crédit',
+        y = "Annuité",
+        size = alt.value(70),
+        tooltip=['index', 'Montant total du crédit', "Annuité"]
+    )
+    full_sc_chart = sc_plot2 + sc_plot1 
+
+    
+    # Scatterplot credit_income ratio
+    st.caption("Sur le graphique de droite, un client en haut à gauche du nuage de points a un crédit faible par rapport à ses revenus")
+    sc_plot3 = alt.Chart(df_wide_display).mark_circle().encode(
+        x = 'Montant total du crédit',
+        y = "Revenu annuel",
+        color = alt.value('darkred'),
+        size = alt.value(400)
+    )
+
+    sc_plot4 = alt.Chart(df_clients_display.reset_index()).mark_circle().encode(
+        x = 'Montant total du crédit',
+        y = "Revenu annuel",
+        size = alt.value(70),
+        tooltip=['index', 'Montant total du crédit', "Revenu annuel"]
+    )
+    full_sc_chart2 = sc_plot4 + sc_plot3 
+    
+    st.altair_chart(full_sc_chart | full_sc_chart2)
 
 
 
