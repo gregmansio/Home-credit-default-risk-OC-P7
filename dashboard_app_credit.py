@@ -31,7 +31,6 @@ data_load_state = st.text('Chargement des données... Veuillez-patienter')
 data_csv = pd.read_csv(DATA_URL, index_col=0)
 cols_to_drop = ['TARGET']
 data_no_target = data_csv.drop(cols_to_drop, axis = 1)
-time.sleep(1)
 data_load_state.text('Chargement terminé')
 data_csv.loc[:, 'age'] = round(abs(data_csv['DAYS_BIRTH']/365), 1)
 
@@ -705,10 +704,7 @@ def main():
 
         with col2:
             st.metric(label = 'Seuil maximal', value = seuil, help="Vous devez obteni un score inférieur pour que votre demande de crédit soit acceptée")
-            
-
-        
-        
+   
         st.text(reponse)
         st.caption("Le résultat ci-dessus a été duement étudié par nos services. Veuillez trouver ci-dessous des éléments étayants notre réponse.")
 
@@ -791,16 +787,20 @@ def main():
         st.dataframe(df_wide_display, use_container_width = True)
         st.caption('Tous les clients')
         st.dataframe(df_clients_display, use_container_width = True)
+    st.markdown("***")
+
 
     # Scatterplot credit_annuity ratio
-    st.subheader('Graphique du ratio Crédit sur Annuité et Crédit sur Revenu')
-    st.caption("Sur le graphique de gauche, un client dans le bas du cone rembourse lentement son crédit")
+    #st.subheader('Graphiques des ratios Crédit sur Annuité et Crédit sur Revenu')
     sc_plot1 = alt.Chart(df_wide_display).mark_circle().encode(
         x = 'Montant total du crédit',
         y = "Annuité",
         color = alt.value('darkred'),
         size = alt.value(400)
-    )
+    ).properties(
+    title='Ratio Crédit sur Annuité',
+    height=768,
+    width=1024)
 
     sc_plot2 = alt.Chart(df_clients_display.reset_index()).mark_circle().encode(
         x = 'Montant total du crédit',
@@ -809,16 +809,22 @@ def main():
         tooltip=['index', 'Montant total du crédit', "Annuité"]
     )
     full_sc_chart = sc_plot2 + sc_plot1 
+    st.altair_chart(full_sc_chart)
+    st.caption("Un client dans le bas du cone rembourse lentement son crédit")
+    st.markdown("***")
 
-    
+
+
     # Scatterplot credit_income ratio
-    st.caption("Sur le graphique de droite, un client en haut à gauche du nuage de points a un crédit faible par rapport à ses revenus")
     sc_plot3 = alt.Chart(df_wide_display).mark_circle().encode(
         x = 'Montant total du crédit',
         y = "Revenu annuel",
         color = alt.value('darkred'),
         size = alt.value(400)
-    )
+    ).properties(
+        title='Ratio Crédit sur Revenu',
+        height=768,
+        width=1024)
 
     sc_plot4 = alt.Chart(df_clients_display.reset_index()).mark_circle().encode(
         x = 'Montant total du crédit',
@@ -828,9 +834,34 @@ def main():
     )
     full_sc_chart2 = sc_plot4 + sc_plot3 
     
-    st.altair_chart(full_sc_chart | full_sc_chart2)
+    st.altair_chart(full_sc_chart2)
+    st.caption("Un client en haut à gauche du nuage de points a un crédit faible par rapport à ses revenus")
+    st.markdown("***")
 
 
+
+    # New ext source mean
+    ext_source_client = pd.DataFrame(df_client.loc['NEW_EXT_SOURCES_MEAN'])
+    ext_source_all = pd.DataFrame(data_csv['NEW_EXT_SOURCES_MEAN'])
+    hist = alt.Chart(ext_source_all).mark_bar().encode(
+            alt.X("NEW_EXT_SOURCES_MEAN", bin=True, title = 'External sources normalized'),
+            y='count()'
+    ).properties(
+        title='Repartition de la variable NEW_EXT_SOURCES_MEAN',
+        height=600,
+        width=800
+        )
+    h1 = alt.Chart(ext_source_client).mark_rule(
+        color='red'
+    ).encode(
+        x = 'NEW_EXT_SOURCES_MEAN'
+    ).properties(
+        height=600,
+        width=800)
+
+    st.altair_chart(hist + h1)
+    st.caption("Cette variable, très importante dans la prédiction, est un aggrégat normalisé de différentes informations de sources externes")
+    st.caption("Plus un client est situé sur la droite du graphique, plus sa probabilité d'obtenir le crédit va ?????????")
 
 if __name__ == '__main__':
     main()
