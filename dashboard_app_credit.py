@@ -1,15 +1,3 @@
-# Une boite de sélection principale pour choisir un client dans une liste de plein de clients (+ potentiellement un bouton qui va chercher automatiquement un client au hasard...
-# ... parmi l'ensemble de l'échantillon, OU parmi le sous-échantillon filtré grâce à des box sur le côté) 
-# Sélection de quelques variables sous forme de filtres pour indentifier plusieurs sous-groupes d'utilisateurs (cf point du dessus): âge, sexe, tranche revenu.
-# Grâce au point 1, on obtient déjà: 
-#    - Un tableau (qui montre les infos de ce client sur telle et telle variable - on va en sélectionner entre 5 et 10) 
-#    - Un graphique sur la répartition d'une de ces variables importantes
-#    - Un graphique sur la répartition d'un ratio de 2 variables
-#    - Une prédiction (score + traduction "Accordé/Non-accordé") accompagnée d'un graphique SHAP qui montre les 3 variables qui influencent le + le résultat pour ce client, donc une interprétation facile
-# Grâce au point 2, on filtre les points affichés sur ces graphiques.
-# (dans les deux cas, notre invidivu est clairement représenté sur chaque graphique pour pouvoir le situer visuellement)
-# J'AJOUTE CETTE LIGNE
-
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -860,8 +848,8 @@ def main():
         width=800)
 
     st.altair_chart(hist + h1)
-    st.caption("Cette variable, très importante dans la prédiction, est un aggrégat normalisé de différentes informations de sources externes")
-    st.caption("Plus un client est situé sur la droite du graphique, plus sa probabilité d'obtenir le crédit va ?????????")
+    st.caption("Cette variable, très importante dans la prédiction, est un agrégat normalisé de différentes informations issues de sources externes")
+    st.caption("Plus un client est situé sur la droite du graphique, plus sa probabilité d'obtenir le crédit va diminuer")
 
 if __name__ == '__main__':
     main()
