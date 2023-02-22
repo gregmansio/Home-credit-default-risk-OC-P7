@@ -82,25 +82,13 @@ def main():
     st.title('Home Credit Scoring')
 
     # Sélection manuelle du client
-    client = st.selectbox(label = 'Sélectionner un client', options = data_no_target.index, key='client')
-
-    # Ou selection aléatoire d'un client
-    #def client_aleatoire(): # On va chercher aléatoirement un client dans l'index,
-        # Tirage aléatoire parmi l'index de notre dataset
-    #    id_random = np.random.randint(1, len(data_no_target.index), 1)
-        # Mise à jour de 'client' grâce au résultat du tirage aléatoire de la ligne juste au dessus
-     #   st.session_state.client = id_random
-        # Mise à jour de data_client et data_x aussi
-        #st.session_state.data_client = data_no_target.iloc[id_random,]
-        #data_x = np.asarray(data_client).tolist()
-
-    #st.button("Tirage aléatoire d'un client", on_click=client_aleatoire)    
+    client = st.selectbox(label = 'Sélectionner un client', options = data_no_target.index, key='client')    
     
      # Filtrage des données clients
     data_client = data_no_target.loc[client]
     data_x = np.asarray(data_client).tolist()
 
-    # Prédiction*
+    # Prédiction
     # Fonction proposée de base par Azure ML pour gérer les certificats
     def allowSelfSignedHttps(allowed):
     # bypass the server certificate verification on client side
@@ -691,10 +679,10 @@ def main():
             st.metric(label = 'Votre score', value = score_display)
 
         with col2:
-            st.metric(label = 'Seuil maximal', value = seuil, help="Vous devez obteni un score inférieur pour que votre demande de crédit soit acceptée")
+            st.metric(label = 'Seuil maximal', value = seuil, help="Vous devez obtenir un score inférieur pour que votre demande de crédit soit acceptée")
    
         st.text(reponse)
-        st.caption("Le résultat ci-dessus a été duement étudié par nos services. Veuillez trouver ci-dessous des éléments étayants notre réponse.")
+        st.caption("Le résultat ci-dessus a été dûment étudié par nos services. Veuillez trouver ci-dessous des éléments étayants notre décision.")
 
     # Appel de la fonction de prédiction quand le bouton défini ci-dessous est cliqué
     if st.button("Votre résultat"):
@@ -848,8 +836,8 @@ def main():
         width=800)
 
     st.altair_chart(hist + h1)
-    st.caption("Cette variable, très importante dans la prédiction, est un agrégat normalisé de différentes informations issues de sources externes")
-    st.caption("Plus un client est situé sur la droite du graphique, plus sa probabilité d'obtenir le crédit va diminuer")
+    st.caption("Cette variable, très importante dans la prédiction, est un agrégat normalisé de différentes informations issues de sources externes.")
+    st.caption("Plus un client est situé sur la droite du graphique, plus sa probabilité d'obtenir le crédit va diminuer.")
 
 if __name__ == '__main__':
     main()
