@@ -6,7 +6,9 @@ import requests
 import time
 import ast
 import urllib.request
+import cloudpickle
 import json
+import shap
 import os
 import ssl
 import re
@@ -21,9 +23,13 @@ cols_to_drop = ['TARGET']
 data_no_target = data_csv.drop(cols_to_drop, axis = 1)
 data_load_state.text('Chargement terminé')
 data_csv.loc[:, 'age'] = round(abs(data_csv['DAYS_BIRTH']/365), 1)
+shap_values_2 = cloudpickle.load(open('shap_values', 'rb'))
+df_shap_values = pd.DataFrame()
+df_shap_values['index_n'] = data_csv.index
+df_shap_values['shap_value_index'] = 0
+df_shap_values.loc[:,'shap_value_index'] = np.arange(1, 1001)
+  
 
-
-    
 # Travail sur les données à sortir visuellement
 
 # Âge - servira à filtrer les infos en dataframe et les deux graphhiques (pareil pour sexe et revenu)
@@ -60,12 +66,15 @@ def categorize_gender(x):
         return 'Femme'
 data_csv['cat_sexe'] = data_csv['CODE_GENDER'].apply(categorize_gender)
 
+def shap_values_index(client_index_value):
+    shap_index = df_shap_values[df_shap_values['index_n'] == client_index_value]['shap_value_index'].values[0]
+    return shap_index
+
 
 # Fonction de création du dashboard
 def main():
     data_load_state.text('')
 
-    
     # Sidebar de sélection de filtres (ou d'aucun filtre!)
     sidebar_title = st.sidebar.title('Filtres')
     sidebar_helper = st.sidebar.text('Sélectionner les filtres à appliquer')
@@ -668,9 +677,9 @@ def main():
         res_str_list = ast.literal_eval(score_raw)
         score = res_str_list[0][1]
         if score <= 0.075: # treshold 
-            reponse = "Félicitations! Votre demande de crédit a été acceptée"
+            reponse = st.markdown(":green[Félicitations! Votre demande de crédit a été acceptée.]")
         else :
-            reponse = "Malheureusement, votre demande de crédit ne peux pas aboutir pour le moment."
+            reponse = st.markdown(":red[Malheureusement, votre demande de crédit ne peux pas aboutir pour le moment.]")
         score_display = round(score, 3)
         seuil = 0.075
 
@@ -681,7 +690,7 @@ def main():
         with col2:
             st.metric(label = 'Seuil maximal', value = seuil, help="Vous devez obtenir un score inférieur pour que votre demande de crédit soit acceptée")
    
-        st.text(reponse)
+  
         st.caption("Le résultat ci-dessus a été dûment étudié par nos services. Veuillez trouver ci-dessous des éléments étayants notre décision.")
 
     # Appel de la fonction de prédiction quand le bouton défini ci-dessous est cliqué
@@ -763,6 +772,17 @@ def main():
         st.dataframe(df_wide_display, use_container_width = True)
         st.caption('Tous les clients')
         st.dataframe(df_clients_display, use_container_width = True)
+    st.markdown("***")
+
+    # Shapley values
+    with st.container():
+        st.subheader("Variables déterminantes pour ce client")
+        st.caption('Valeurs de Shapley. Une variable en rouge réduit la probabilité de recevoir le crédit, une variable en bleu augmente cette probabilité.')
+        shap_value_client = shap_values_index(client)
+        fig = shap.plots.waterfall(shap_values_2[shap_value_client - 1])
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot(fig)
+
     st.markdown("***")
 
 
