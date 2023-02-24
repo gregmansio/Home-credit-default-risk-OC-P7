@@ -9,7 +9,7 @@ import urllib.request
 import cloudpickle
 import json
 import matplotlib.pyplot as plt
-from shap.plots import waterfall as wtfall
+#import shap
 import os
 import ssl
 import re
@@ -779,7 +779,7 @@ def main():
     st.subheader("Variables déterminantes pour ce client")
     st.caption('Valeurs de Shapley. Une variable en rouge réduit la probabilité de recevoir le crédit, une variable en bleu augmente cette probabilité.')
     shap_value_client = shap_values_index(client)
-    fig = wtfall(shap_values_2[shap_value_client - 1])
+    fig = shap.plots.waterfall(shap_values_2[shap_value_client - 1])
     st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot(fig)
 
