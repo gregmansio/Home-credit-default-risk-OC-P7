@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'CreditScoringApplication'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AA022576606C4C3F9EC34783016BF6D8 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5E427588A1BB4761B8D3425FC69E5ED6 }}
