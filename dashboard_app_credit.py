@@ -9,7 +9,7 @@ import urllib.request
 import cloudpickle
 import json
 import matplotlib.pyplot as plt
-#import shap
+import shap
 import os
 import ssl
 import re
@@ -24,11 +24,11 @@ cols_to_drop = ['TARGET']
 data_no_target = data_csv.drop(cols_to_drop, axis = 1)
 data_load_state.text('Chargement terminé')
 data_csv.loc[:, 'age'] = round(abs(data_csv['DAYS_BIRTH']/365), 1)
-shap_values_2 = cloudpickle.load(open('shap_values', 'rb'))
-df_shap_values = pd.DataFrame()
-df_shap_values['index_n'] = data_csv.index
-df_shap_values['shap_value_index'] = 0
-df_shap_values.loc[:,'shap_value_index'] = np.arange(1, 1001)
+#shap_values_2 = cloudpickle.load(open('shap_values', 'rb'))
+#df_shap_values = pd.DataFrame()
+#df_shap_values['index_n'] = data_csv.index
+#df_shap_values['shap_value_index'] = 0
+#df_shap_values.loc[:,'shap_value_index'] = np.arange(1, 1001)
   
 
 # Travail sur les données à sortir visuellement
