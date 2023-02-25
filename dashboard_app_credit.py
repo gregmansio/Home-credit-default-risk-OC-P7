@@ -775,15 +775,15 @@ def main():
         st.dataframe(df_clients_display, use_container_width = True)
     st.markdown("***")
 
-    # Shapley values
-    st.subheader("Variables déterminantes pour ce client")
-    st.caption('Valeurs de Shapley. Une variable en rouge réduit la probabilité de recevoir le crédit, une variable en bleu augmente cette probabilité.')
-    shap_value_client = shap_values_index(client)
-    fig = shap.plots.waterfall(shap_values_2[shap_value_client - 1])
-    st.set_option('deprecation.showPyplotGlobalUse', False)
-    st.pyplot(fig)
-
-    st.markdown("***")
+    ## Shapley values
+    #st.subheader("Variables déterminantes pour ce client")
+    #st.caption('Valeurs de Shapley. Une variable en rouge réduit la probabilité de recevoir le crédit, une variable en bleu augmente cette probabilité.')
+    #shap_value_client = shap_values_index(client)
+    #fig = shap.plots.waterfall(shap_values_2[shap_value_client - 1])
+    #st.set_option('deprecation.showPyplotGlobalUse', False)
+    #st.pyplot(fig)
+    #
+    #st.markdown("***")
 
 
     # Scatterplot credit_annuity ratio
